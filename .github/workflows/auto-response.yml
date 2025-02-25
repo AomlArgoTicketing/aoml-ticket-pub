@@ -11,10 +11,21 @@ jobs:
       - name: Post Acknowledgement
         uses: actions/github-script@v6
         with:
+          github-token: ${{ secrets.PAT_SECRET }}
           script: |
-            github.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: "Thank you for your submission! Our team has received your request and will review it shortly. We'll provide updates here."
+            const { context, github } = require('@actions/github');
+            
+            const issueNumber = context.payload.issue.number;
+            const repoOwner = context.repo.owner;
+            const repoName = context.repo.repo;
+
+            console.log(`Adding a comment to issue #${issueNumber} in ${repoOwner}/${repoName}`);
+
+            await github.rest.issues.createComment({
+              owner: repoOwner,
+              repo: repoName,
+              issue_number: issueNumber,
+              body: "✅ Thank you for submitting your request! Our team has received it and will review it shortly."
             });
+
+            console.log("Comment added successfully.");
