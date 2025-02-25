@@ -1,0 +1,30 @@
+name: Auto Assign Tickets
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  auto_assign:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assign Issue Based on Category
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issue = context.payload.issue;
+            let assignee = "aoml.maverick"; // Default assignee
+
+            if (issue.body.includes("QC Queries")) {
+              assignee = "aoml.hansolo";
+            } else if (issue.body.includes("GTS Queries")) {
+              assignee = "aoml.skywalker";
+            }
+
+            github.issues.addAssignees({
+              issue_number: issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              assignees: [assignee]
+            });
