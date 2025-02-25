@@ -1,0 +1,20 @@
+name: Auto-Response to Issue Submissions
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  respond:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post Acknowledgement
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: "Thank you for your submission! Our team has received your request and will review it shortly. We'll provide updates here."
+            });
