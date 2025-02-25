@@ -8,18 +8,26 @@ jobs:
   respond:
     runs-on: ubuntu-latest
     steps:
-      - name: Post Acknowledgement
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Post Acknowledgement Comment
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.PAT_SECRET }}
           script: |
-            const { context, github } = require('@actions/github');
-            
+            const { github, context } = require('@actions/github');
+
+            if (!github || !github.rest || !github.rest.issues) {
+              console.error("GitHub API object is not defined correctly.");
+              throw new Error("GitHub API access failed.");
+            }
+
             const issueNumber = context.payload.issue.number;
             const repoOwner = context.repo.owner;
             const repoName = context.repo.repo;
 
-            console.log(`Adding a comment to issue #${issueNumber} in ${repoOwner}/${repoName}`);
+            console.log(`Processing issue #${issueNumber} in ${repoOwner}/${repoName}`);
 
             await github.rest.issues.createComment({
               owner: repoOwner,
