@@ -11,23 +11,21 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Post Acknowledgement Comment
+      - name: Add Auto-Response Comment
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.PAT_SECRET }}
           script: |
-            const { github, context } = require('@actions/github');
-
-            if (!github || !github.rest || !github.rest.issues) {
-              console.error("GitHub API object is not defined correctly.");
-              throw new Error("GitHub API access failed.");
-            }
-
             const issueNumber = context.payload.issue.number;
-            const repoOwner = context.repo.owner;
-            const repoName = context.repo.repo;
+            const repoOwner = context.payload.repository.owner.login;
+            const repoName = context.payload.repository.name;
 
             console.log(`Processing issue #${issueNumber} in ${repoOwner}/${repoName}`);
+
+            if (!issueNumber || !repoOwner || !repoName) {
+              console.error("ERROR: Missing required issue or repository information.");
+              throw new Error("Failed to retrieve issue details.");
+            }
 
             await github.rest.issues.createComment({
               owner: repoOwner,
@@ -36,4 +34,4 @@ jobs:
               body: "✅ Thank you for submitting your request! Our team has received it and will review it shortly."
             });
 
-            console.log("Comment added successfully.");
+            console.log("✅ Comment added successfully.");
