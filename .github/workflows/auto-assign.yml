@@ -1,30 +1,20 @@
-name: Auto Assign Tickets
+name: Auto-Assign Issues
 
 on:
   issues:
     types: [opened]
 
 jobs:
-  auto_assign:
+  assign:
     runs-on: ubuntu-latest
     steps:
-      - name: Assign Issue Based on Category
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const issue = context.payload.issue;
-            let assignee = "aoml.maverick"; // Default assignee
+      - name: Auto-Assign Issue
+        run: |
+          echo "Assigning issue #${{ github.event.issue.number }} in repository ${{ github.repository }}"
 
-            if (issue.body.includes("QC Queries")) {
-              assignee = "aoml.hansolo";
-            } else if (issue.body.includes("GTS Queries")) {
-              assignee = "aoml.skywalker";
-            }
+          curl -X POST -H "Authorization: token ${{ secrets.PAT_SECRET }}" \
+          -H "Accept: application/vnd.github.v3+json" \
+          -d '{"assignees":["TicketTesting77"]}' \
+          "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/assignees"
 
-            github.issues.addAssignees({
-              issue_number: issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              assignees: [assignee]
-            });
+          echo "✅ Issue assigned successfully."
