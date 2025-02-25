@@ -1,0 +1,35 @@
+name: Sync Public Issues to Private Repo
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  sync_issue:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Internal Issue
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issue = context.payload.issue;
+            const title = issue.title;
+            const body = issue.body;
+            const public_url = issue.html_url;
+
+            github.issues.create({
+              owner: 'your-org-or-username',
+              repo: 'aoml-internal-tracking',
+              title: `[Public #${issue.number}] ${title}`,
+              body: `**Public Issue:** [View Issue](${public_url})\n\n${body}`,
+              labels: ["Synced from Public"]
+            });
+
+            // Post a comment in the public issue
+            github.issues.createComment({
+              issue_number: issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: "Thanks for your submission. We have logged this internally for review."
+            });
