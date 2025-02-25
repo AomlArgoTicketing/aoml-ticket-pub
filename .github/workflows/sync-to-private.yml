@@ -18,18 +18,25 @@ jobs:
             const body = issue.body;
             const public_url = issue.html_url;
 
-            github.issues.create({
-              owner: 'TicketTesting77',
-              repo: 'aoml-internal-tracking',
+            // Ensure github object is properly defined
+            if (!github) {
+              console.error("GitHub object is undefined!");
+              return;
+            }
+
+            // Create issue in private repo
+            await github.rest.issues.create({
+              owner: 'TicketTesting77',  // Replace with your GitHub username or org name
+              repo: 'aoml-internal-tracking',  // Private repo
               title: `[Public #${issue.number}] ${title}`,
-              body: `**Public Issue:** [View Issue](${public_url})\n\n${body}`,
+              body: `### 🔗 Linked Public Issue: [View Issue](${public_url})\n\n---\n${body}`,
               labels: ["Synced from Public"]
             });
 
-            // Post a comment in the public issue
-            github.issues.createComment({
-              issue_number: issue.number,
+            // Post confirmation comment in public issue
+            await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: "Thanks for your submission. We have logged this internally for review."
+              issue_number: issue.number,
+              body: "✅ This issue has been **logged internally** and is now being reviewed by our team."
             });
