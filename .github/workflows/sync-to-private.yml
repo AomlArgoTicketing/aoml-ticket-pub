@@ -19,7 +19,7 @@ jobs:
             const public_url = issue.html_url;
 
             github.issues.create({
-              owner: 'your-org-or-username',
+              owner: 'TicketTesting77',
               repo: 'aoml-internal-tracking',
               title: `[Public #${issue.number}] ${title}`,
               body: `**Public Issue:** [View Issue](${public_url})\n\n${body}`,
