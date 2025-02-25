@@ -8,30 +8,9 @@ jobs:
   respond:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-
-      - name: Add Auto-Response Comment
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.PAT_SECRET }}
-          script: |
-            const issueNumber = context.payload.issue.number;
-            const repoOwner = context.payload.repository.owner.login;
-            const repoName = context.payload.repository.name;
-
-            console.log(`Processing issue #${issueNumber} in ${repoOwner}/${repoName}`);
-
-            if (!issueNumber || !repoOwner || !repoName) {
-              console.error("ERROR: Missing required issue or repository information.");
-              throw new Error("Failed to retrieve issue details.");
-            }
-
-            await github.rest.issues.createComment({
-              owner: repoOwner,
-              repo: repoName,
-              issue_number: issueNumber,
-              body: "✅ Thank you for submitting your request! Our team has received it and will review it shortly."
-            });
-
-            console.log("✅ Comment added successfully.");
+      - name: Post Acknowledgement Comment
+        run: |
+          curl -X POST -H "Authorization: token ${{ secrets.PAT_SECRET }}" \
+          -H "Accept: application/vnd.github.v3+json" \
+          -d '{"body": "✅ Thank you for submitting your request! Our team has received it and will review it shortly."}' \
+          "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/comments"
