@@ -1,0 +1,25 @@
+name: Auto-Label Issues with Private Repo Reference
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  add_label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add Private Repo Issue Label
+        env:
+          GH_TOKEN: ${{ secrets.PAT_SECRET }}
+          PRIVATE_ISSUE_NUMBER: ${{ github.event.issue.number }}
+          PUBLIC_REPO: "TicketTesting77/aoml-ticket-pub"
+
+        run: |
+          echo "🔖 Adding label private-issue-$PRIVATE_ISSUE_NUMBER to new issue in $PUBLIC_REPO"
+
+          curl -X POST -H "Authorization: token $GH_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -d "{\"labels\": [\"private-issue-$PRIVATE_ISSUE_NUMBER\"]}" \
+            "https://api.github.com/repos/$PUBLIC_REPO/issues/$PRIVATE_ISSUE_NUMBER/labels"
+
+          echo "✅ Label private-issue-$PRIVATE_ISSUE_NUMBER added successfully."
