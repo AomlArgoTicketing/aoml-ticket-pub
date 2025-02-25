@@ -10,7 +10,11 @@ jobs:
     steps:
       - name: Post Acknowledgement Comment
         run: |
+          echo "Posting a comment on issue #${{ github.event.issue.number }} in repository ${{ github.repository }}"
+
           curl -X POST -H "Authorization: token ${{ secrets.PAT_SECRET }}" \
           -H "Accept: application/vnd.github.v3+json" \
           -d '{"body": "✅ Thank you for submitting your request! Our team has received it and will review it shortly."}' \
           "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/comments"
+
+          echo "✅ Comment posted successfully."
