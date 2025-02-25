@@ -11,7 +11,7 @@ jobs:
       - name: Create Internal Issue
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.PAT_SECRET }}
           script: |
             const issue = context.payload.issue;
             const title = issue.title;
