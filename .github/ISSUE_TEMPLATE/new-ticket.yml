@@ -33,6 +33,33 @@ body:
     validations:
       required: true
 
+  - type: dropdown
+    id: organization
+    attributes:
+      label: "🏢 Select Organization"
+      description: "Choose the organization submitting this issue"
+      options:
+        - AOML
+        - SIO
+        - UW
+        - WHOI
+        - PMEL
+        - NAVO
+        - UH
+        - MIT
+        - JPL
+        - NDBC
+        - FSU
+        - Navoceano
+        - UMaine
+        - iFremer
+        - Coriolis
+        - NCEI
+        - Other National
+        - Other International
+    validations:
+      required: true
+
   - type: textarea
     id: description
     attributes:
@@ -45,13 +72,15 @@ body:
   - type: dropdown
     id: priority
     attributes:
-      label: "🚦 Set Priority"
+      label: "🚦 Set Priority (1 = Highest, 6 = Lowest)"
       description: "Select the priority level for this issue."
       options:
-        - 🟢 Low
-        - 🟡 Medium
-        - 🔴 High
-        - 🚨 Critical
+        - "1 - Critical"
+        - "2 - High"
+        - "3 - Medium High"
+        - "4 - Medium"
+        - "5 - Low"
+        - "6 - Very Low"
     validations:
       required: true
 
