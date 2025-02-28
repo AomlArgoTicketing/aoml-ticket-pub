@@ -18,3 +18,4 @@ jobs:
           "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/assignees"
 
           echo "✅ Issue assigned successfully."
+          label
