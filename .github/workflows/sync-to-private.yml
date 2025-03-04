@@ -18,6 +18,9 @@ jobs:
             const body = issue.body;
             const public_url = issue.html_url;
 
+            // Extract labels from the public issue
+            const labels = issue.labels.map(label => label.name); // ✅ Copies labels from public issue
+
             // Ensure github object is properly defined
             if (!github) {
               console.error("GitHub object is undefined!");
@@ -26,11 +29,11 @@ jobs:
 
             // Create issue in private repo
             await github.rest.issues.create({
-              owner: 'TicketTesting77',  // Replace with your GitHub username or org name
+              owner: 'TicketTesting77',  // Change if different
               repo: 'aoml-internal-tracking',  // Private repo
               title: `[Public #${issue.number}] ${title}`,
               body: `### 🔗 Linked Public Issue: [View Issue](${public_url})\n\n---\n${body}`,
-              labels: ["Synced from Public"]
+              labels: labels.length > 0 ? labels : ["Synced from Public"] // ✅ If no labels, default to "Synced from Public"
             });
 
             // Post confirmation comment in public issue
