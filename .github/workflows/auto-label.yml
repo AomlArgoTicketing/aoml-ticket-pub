@@ -1,0 +1,85 @@
+name: Auto Assign Labels Based on Category
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  assign_labels:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Extract Issue Category and Assign Labels
+        env:
+          GH_TOKEN: ${{ secrets.PAT_SECRET }}
+          REPO: "TicketTesting77/aoml-ticket-pub"
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+
+        run: |
+          echo "🔍 Extracting category from issue #$ISSUE_NUMBER"
+
+          # Define label mapping (case-sensitive, must match GitHub label names)
+          declare -A LABELS
+          LABELS["BGC queries"]="BGC queries"
+          LABELS["Core queries"]="Core queries"
+          LABELS["Corilois"]="Corilois"
+          LABELS["Deep queries"]="Deep queries"
+          LABELS["FSU"]="FSU"
+          LABELS["GDAC queries"]="GDAC queries"
+          LABELS["General queries"]="General queries"
+          LABELS["GTS queries"]="GTS queries"
+          LABELS["Hex file queries"]="Hex file queries"
+          LABELS["iFremer"]="iFremer"
+          LABELS["JPL"]="JPL"
+          LABELS["Meta file queries"]="Meta file queries"
+          LABELS["MIT"]="MIT"
+          LABELS["NAVO"]="NAVO"
+          LABELS["Navoceano"]="Navoceano"
+          LABELS["NCEI queries"]="NCEI queries"
+          LABELS["NCEI"]="NCEI"
+          LABELS["NDBC"]="NDBC"
+          LABELS["Other International"]="Other International"
+          LABELS["Other National"]="Other National"
+          LABELS["Phy file queries"]="Phy file queries"
+          LABELS["PI queries"]="PI queries"
+          LABELS["PMEL"]="PMEL"
+          LABELS["Polar queries"]="Polar queries"
+          LABELS["QC queries"]="QC queries"
+          LABELS["Reprocess request"]="Reprocess request"
+          LABELS["SIO"]="SIO"
+          LABELS["Traj file queries"]="Traj file queries"
+          LABELS["UH"]="UH"
+          LABELS["UMaine"]="UMaine"
+          LABELS["UW"]="UW"
+          LABELS["WHOI"]="WHOI"
+
+          # Extract category from issue body
+          SELECTED_CATEGORY=$(echo "$ISSUE_BODY" | grep -oP "(?<=### 📝 Please select the type of issue\*\*\* ).*")
+
+          if [[ -z "$SELECTED_CATEGORY" ]]; then
+            echo "❌ Could not determine category from issue body."
+            exit 0
+          fi
+
+          echo "✅ Issue Category Detected: $SELECTED_CATEGORY"
+
+          # Check if category exists in the label mapping
+          LABEL_TO_ADD=${LABELS[$SELECTED_CATEGORY]}
+
+          if [[ -z "$LABEL_TO_ADD" ]]; then
+            echo "❌ No matching label found for category: $SELECTED_CATEGORY"
+            exit 0
+          fi
+
+          echo "🏷️ Assigning label: $LABEL_TO_ADD"
+
+          # Add the label to the issue
+          curl -s -X POST -H "Authorization: token $GH_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -d "{
+              \"labels\": [\"$LABEL_TO_ADD\"]
+            }" \
+            "https://api.github.com/repos/$REPO/issues/$ISSUE_NUMBER"
+
+          echo "✅ Label \"$LABEL_TO_ADD\" successfully added to issue #$ISSUE_NUMBER"
