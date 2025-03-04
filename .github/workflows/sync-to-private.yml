@@ -17,26 +17,39 @@ jobs:
             const title = issue.title;
             const body = issue.body;
             const public_url = issue.html_url;
-
+            
             // Extract labels from the public issue
-            const labels = issue.labels.map(label => label.name);
+            const labels = issue.labels.map(label => label.name); 
 
-            console.log("Extracted Labels:", labels);  // ✅ Debugging: Print labels to log
+            console.log("Extracted Labels:", labels); // ✅ Debugging: Print labels
 
-            // Ensure github object is properly defined
-            if (!github) {
-              console.error("GitHub object is undefined!");
-              return;
+            // Ensure "Synced from Public" label is always included
+            if (!labels.includes("Synced from Public")) {
+              labels.push("Synced from Public");
             }
 
             // Create issue in private repo
-            await github.rest.issues.create({
-              owner: 'TicketTesting77',
-              repo: 'aoml-internal-tracking',
+            const createdIssue = await github.rest.issues.create({
+              owner: 'TicketTesting77',  // Update if needed
+              repo: 'aoml-internal-tracking',  // Private repo
               title: `[Public #${issue.number}] ${title}`,
-              body: `### 🔗 Linked Public Issue: [View Issue](${public_url})\n\n---\n${body}`,
-              labels: labels.length > 0 ? labels : ["Synced from Public"]
+              body: `### 🔗 Linked Public Issue: [View Issue](${public_url})\n\n---\n${body}`
             });
+
+            console.log("Created Issue Number:", createdIssue.data.number);  // ✅ Debugging
+
+            // Apply labels separately after issue creation
+            if (labels.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: 'TicketTesting77',
+                repo: 'aoml-internal-tracking',
+                issue_number: createdIssue.data.number,
+                labels: labels
+              });
+              console.log(`Labels added: ${labels.join(", ")}`);  // ✅ Debugging: Confirm applied labels
+            } else {
+              console.log("No labels detected, skipping label addition.");
+            }
 
             // Post confirmation comment in public issue
             await github.rest.issues.createComment({
