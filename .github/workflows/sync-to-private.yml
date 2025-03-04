@@ -7,36 +7,44 @@ on:
 jobs:
   sync_issue:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Create Internal Issue
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.PAT_SECRET }}
-          script: |
-            const issue = context.payload.issue;
-            const title = issue.title;
-            const body = issue.body;
-            const public_url = issue.html_url;
+      - name: Create Issue in Private Repo and Add Label
+        env:
+          GH_TOKEN: ${{ secrets.PAT_SECRET }}
+          PUBLIC_ISSUE_NUMBER: ${{ github.event.issue.number }}
+          PUBLIC_REPO: "TicketTesting77/aoml-ticket-pub"
+          PRIVATE_REPO: "TicketTesting77/aoml-internal-tracking"
 
-            // Ensure github object is properly defined
-            if (!github) {
-              console.error("GitHub object is undefined!");
-              return;
-            }
+        run: |
+          echo "🔄 Syncing issue #$PUBLIC_ISSUE_NUMBER from $PUBLIC_REPO to $PRIVATE_REPO"
 
-            // Create issue in private repo
-            await github.rest.issues.create({
-              owner: 'TicketTesting77',  // Replace with your GitHub username or org name
-              repo: 'aoml-internal-tracking',  // Private repo
-              title: `[Public #${issue.number}] ${title}`,
-              body: `### 🔗 Linked Public Issue: [View Issue](${public_url})\n\n---\n${body}`,
-              labels: ["Synced from Public"]
-            });
+          # Create a new issue in the private repo
+          NEW_ISSUE=$(curl -s -X POST -H "Authorization: token $GH_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -d "{
+              \"title\": \"[Synced] ${{ github.event.issue.title }}\",
+              \"body\": \"This issue was automatically synced from $PUBLIC_REPO.\\n\\n**Original Public Issue:** #$PUBLIC_ISSUE_NUMBER (https://github.com/$PUBLIC_REPO/issues/$PUBLIC_ISSUE_NUMBER)\\n\\n${{ github.event.issue.body }}\"
+            }" \
+            "https://api.github.com/repos/$PRIVATE_REPO/issues")
 
-            // Post confirmation comment in public issue
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: issue.number,
-              body: "✅ This issue has been **logged internally** and is now being reviewed by our team."
-            });
+          # Extract the new private issue number
+          PRIVATE_ISSUE_NUMBER=$(echo "$NEW_ISSUE" | jq -r '.number')
+
+          if [[ -z "$PRIVATE_ISSUE_NUMBER" || "$PRIVATE_ISSUE_NUMBER" == "null" ]]; then
+            echo "❌ Failed to create issue in private repo."
+            exit 1
+          fi
+
+          echo "✅ Created issue #$PRIVATE_ISSUE_NUMBER in $PRIVATE_REPO"
+
+          # Add a label in the private repo to track the public issue
+          LABEL_NAME="linked-public-issue-$PUBLIC_ISSUE_NUMBER"
+          curl -s -X POST -H "Authorization: token $GH_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -d "{
+              \"labels\": [\"$LABEL_NAME\"]
+            }" \
+            "https://api.github.com/repos/$PRIVATE_REPO/issues/$PRIVATE_ISSUE_NUMBER"
+
+          echo "✅ Added label \"$LABEL_NAME\" to issue #$PRIVATE_ISSUE_NUMBER in $PRIVATE_REPO"
