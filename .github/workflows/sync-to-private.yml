@@ -34,9 +34,30 @@ jobs:
               return [];  // ❌ No labels found after retries
             }
 
+            async function checkDuplicateIssue(owner, repo, issue_number) {
+              const { data: existingIssues } = await github.rest.issues.listForRepo({
+                owner,
+                repo,
+                state: "open",
+                per_page: 100
+              });
+
+              return existingIssues.some(issue => issue.title.includes(`[Public #${issue_number}]`));
+            }
+
             const issueNumber = context.payload.issue.number;
             const repoOwner = context.repo.owner;
             const repoName = context.repo.repo;
+
+            console.log(`🔍 Checking for existing issue in private repo: Public Issue #${issueNumber}`);
+
+            // ✅ Check if the issue already exists in the private repo
+            const exists = await checkDuplicateIssue('TicketTesting77', 'aoml-internal-tracking', issueNumber);
+
+            if (exists) {
+              console.log(`⚠ Issue #${issueNumber} already exists in private repo. Skipping creation.`);
+              return;  // ❌ Exit script to prevent duplication
+            }
 
             // ✅ Fetch issue data with retries
             const labels = await fetchIssueWithRetries(repoOwner, repoName, issueNumber);
@@ -46,7 +67,7 @@ jobs:
               labels.push("Synced from Public");
             }
 
-            // Create issue in private repo
+            // ✅ Create issue in private repo (Only if it doesn't exist)
             const createdIssue = await github.rest.issues.create({
               owner: 'TicketTesting77',
               repo: 'aoml-internal-tracking',
