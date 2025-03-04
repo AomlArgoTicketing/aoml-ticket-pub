@@ -8,6 +8,9 @@ jobs:
   sync_issue:
     runs-on: ubuntu-latest
     steps:
+      - name: Wait for Labels to Apply
+        run: sleep 5  # ⏳ Wait 5 seconds before proceeding
+
       - name: Debug - Print Extracted Labels
         uses: actions/github-script@v6
         with:
@@ -31,7 +34,7 @@ jobs:
 
             console.log("🛠 Extracted Labels:", labels);
 
-            // Create issue in private repo without labels first
+            // Create issue in private repo
             const createdIssue = await github.rest.issues.create({
               owner: 'TicketTesting77',
               repo: 'aoml-internal-tracking',
@@ -41,7 +44,7 @@ jobs:
 
             console.log("✅ Issue Created in Private Repo:", createdIssue.data.number);
 
-            // Apply labels separately
+            // Apply labels separately after issue creation
             if (labels.length > 0) {
               await github.rest.issues.addLabels({
                 owner: 'TicketTesting77',
