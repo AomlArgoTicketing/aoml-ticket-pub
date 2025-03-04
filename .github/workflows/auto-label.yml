@@ -9,18 +9,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Extract Issue Fields
-        id: extract
-        run: |
-          CATEGORY=$(echo "${{ github.event.issue.body }}" | grep -oP "(?<=### 🔹 Select Issue Category\n\n).+")
-          ORGANIZATION=$(echo "${{ github.event.issue.body }}" | grep -oP "(?<=### 🏢 Select Organization\n\n).+")
-          echo "category=$CATEGORY" >> $GITHUB_ENV
-          echo "organization=$ORGANIZATION" >> $GITHUB_ENV
-
-      - name: Assign Labels
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.PAT_SECRET }}
           script: |
+            const issue = context.payload.issue;
+            const body = issue.body;
+
+            function extractField(fieldName) {
+              const regex = new RegExp(`${fieldName}\\n\\n(.+)`);
+              const match = body.match(regex);
+              return match ? match[1].trim() : null;
+            }
+
+            const category = extractField("🔹 Select Issue Category");
+            const organization = extractField("🏢 Select Organization");
+
+            console.log(`Extracted Category: ${category}`);
+            console.log(`Extracted Organization: ${organization}`);
+
             const categoryToLabelMap = {
               "Reprocess request": "Reprocess request",
               "QC queries": "QC queries",
@@ -60,8 +67,6 @@ jobs:
               "Other International": "Other International"
             };
 
-            const category = process.env.category ? process.env.category.trim() : "";
-            const organization = process.env.organization ? process.env.organization.trim() : "";
             const labels = [];
 
             if (categoryToLabelMap[category]) {
@@ -75,7 +80,7 @@ jobs:
               github.rest.issues.addLabels({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                issue_number: context.payload.issue.number,
+                issue_number: issue.number,
                 labels: labels
               });
               console.log(`Labels added: ${labels.join(", ")}`);
