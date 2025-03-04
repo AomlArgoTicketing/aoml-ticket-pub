@@ -8,6 +8,16 @@ jobs:
   sync_issue:
     runs-on: ubuntu-latest
     steps:
+      - name: Debug - Print Extracted Labels
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.PAT_SECRET }}
+          script: |
+            const issue = context.payload.issue;
+            const labels = issue.labels.map(label => label.name);
+
+            console.log("🛠 Extracted Labels from Public Issue:", labels);
+
       - name: Create Internal Issue
         uses: actions/github-script@v6
         with:
@@ -17,28 +27,21 @@ jobs:
             const title = issue.title;
             const body = issue.body;
             const public_url = issue.html_url;
-            
-            // Extract labels from the public issue
-            const labels = issue.labels.map(label => label.name); 
+            const labels = issue.labels.map(label => label.name);
 
-            console.log("Extracted Labels:", labels); // ✅ Debugging: Print labels
+            console.log("🛠 Extracted Labels:", labels);
 
-            // Ensure "Synced from Public" label is always included
-            if (!labels.includes("Synced from Public")) {
-              labels.push("Synced from Public");
-            }
-
-            // Create issue in private repo
+            // Create issue in private repo without labels first
             const createdIssue = await github.rest.issues.create({
-              owner: 'TicketTesting77',  // Update if needed
-              repo: 'aoml-internal-tracking',  // Private repo
+              owner: 'TicketTesting77',
+              repo: 'aoml-internal-tracking',
               title: `[Public #${issue.number}] ${title}`,
               body: `### 🔗 Linked Public Issue: [View Issue](${public_url})\n\n---\n${body}`
             });
 
-            console.log("Created Issue Number:", createdIssue.data.number);  // ✅ Debugging
+            console.log("✅ Issue Created in Private Repo:", createdIssue.data.number);
 
-            // Apply labels separately after issue creation
+            // Apply labels separately
             if (labels.length > 0) {
               await github.rest.issues.addLabels({
                 owner: 'TicketTesting77',
@@ -46,15 +49,7 @@ jobs:
                 issue_number: createdIssue.data.number,
                 labels: labels
               });
-              console.log(`Labels added: ${labels.join(", ")}`);  // ✅ Debugging: Confirm applied labels
+              console.log(`✅ Labels Added: ${labels.join(", ")}`);
             } else {
-              console.log("No labels detected, skipping label addition.");
+              console.log("⚠ No labels detected, skipping label addition.");
             }
-
-            // Post confirmation comment in public issue
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: issue.number,
-              body: "✅ This issue has been **logged internally** and is now being reviewed by our team."
-            });
