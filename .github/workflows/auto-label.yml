@@ -49,6 +49,7 @@ jobs:
             const organizationToLabelMap = {
               "AOML": "AOML",
               "SIO": "SIO",
+              "MBARI": "MBARI",
               "UW": "UW",
               "WHOI": "WHOI",
               "PMEL": "PMEL",
