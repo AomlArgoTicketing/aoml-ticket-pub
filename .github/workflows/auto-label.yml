@@ -1,109 +1,84 @@
-name: Auto Assign Labels Based on Category & Organization
+name: Auto-label Issues
 
 on:
   issues:
-    types: [opened]
+    types: [opened, edited]
 
 jobs:
-  assign_labels:
+  add-label:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Extract Issue Details and Assign Labels
-        env:
-          GH_TOKEN: ${{ secrets.PAT_SECRET }}
-          REPO: "TicketTesting77/aoml-ticket-pub"
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
-
+      - name: Extract Issue Fields
+        id: extract
         run: |
-          echo "🔍 Fetching issue #$ISSUE_NUMBER"
+          CATEGORY=$(echo "${{ github.event.issue.body }}" | grep -oP "(?<=### 🔹 Select Issue Category\n\n).+")
+          ORGANIZATION=$(echo "${{ github.event.issue.body }}" | grep -oP "(?<=### 🏢 Select Organization\n\n).+")
+          echo "category=$CATEGORY" >> $GITHUB_ENV
+          echo "organization=$ORGANIZATION" >> $GITHUB_ENV
 
-          # Fetch the issue body
-          ISSUE_BODY=$(curl -s -H "Authorization: token $GH_TOKEN" \
-            -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/repos/$REPO/issues/$ISSUE_NUMBER" | jq -r '.body')
+      - name: Assign Labels
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const categoryToLabelMap = {
+              "Reprocess request": "Reprocess request",
+              "QC queries": "QC queries",
+              "Phy file queries": "Phy file queries",
+              "Hex file queries": "Hex file queries",
+              "Meta files queries": "Meta file queries",
+              "Traj file queries": "Traj file queries",
+              "GDAC queries": "GDAC queries",
+              "GTS queries": "GTS queries",
+              "NCEI queries": "NCEI queries",
+              "General queries": "General queries",
+              "PI queries": "PI queries",
+              "Core queries": "Core queries",
+              "Deep queries": "Deep queries",
+              "BGC queries": "BGC queries",
+              "Polar querie": "Polar queries"
+            };
 
-          echo "📄 Issue Body: $ISSUE_BODY"
+            const organizationToLabelMap = {
+              "AOML": "AOML",
+              "SIO": "SIO",
+              "UW": "UW",
+              "WHOI": "WHOI",
+              "PMEL": "PMEL",
+              "NAVO": "NAVO",
+              "UH": "UH",
+              "MIT": "MIT",
+              "JPL": "JPL",
+              "NDBC": "NDBC",
+              "FSU": "FSU",
+              "Navoceano": "Navoceano",
+              "UMaine": "UMaine",
+              "iFremer": "iFremer",
+              "Coriolis": "Coriolis",
+              "NCEI": "NCEI",
+              "Other National": "Other National",
+              "Other International": "Other International"
+            };
 
-          # Extract selected category from the issue body
-          SELECTED_CATEGORY=$(echo "$ISSUE_BODY" | grep -oP '(?<=🔹 Select Issue Category\*\*\*: ).*' | tr -d '\r')
+            const category = process.env.category ? process.env.category.trim() : "";
+            const organization = process.env.organization ? process.env.organization.trim() : "";
+            const labels = [];
 
-          # Extract selected organization from the issue body
-          SELECTED_ORG=$(echo "$ISSUE_BODY" | grep -oP '(?<=🏢 Select Organization\*\*\*: ).*' | tr -d '\r')
+            if (categoryToLabelMap[category]) {
+              labels.push(categoryToLabelMap[category]);
+            }
+            if (organizationToLabelMap[organization]) {
+              labels.push(organizationToLabelMap[organization]);
+            }
 
-          if [[ -z "$SELECTED_CATEGORY" ]]; then
-            echo "❌ Could not determine category from issue body."
-            exit 0
-          fi
-
-          if [[ -z "$SELECTED_ORG" ]]; then
-            echo "❌ Could not determine organization from issue body."
-            exit 0
-          fi
-
-          echo "✅ Issue Category Detected: $SELECTED_CATEGORY"
-          echo "✅ Organization Detected: $SELECTED_ORG"
-
-          # Define label mappings
-          declare -A CATEGORY_LABELS
-          CATEGORY_LABELS["Reprocess request"]="Reprocess request"
-          CATEGORY_LABELS["QC queries"]="QC queries"
-          CATEGORY_LABELS["Phy file queries"]="Phy file queries"
-          CATEGORY_LABELS["Hex file queries"]="Hex file queries"
-          CATEGORY_LABELS["Meta files queries"]="Meta file queries"
-          CATEGORY_LABELS["Traj file queries"]="Traj file queries"
-          CATEGORY_LABELS["GDAC queries"]="GDAC queries"
-          CATEGORY_LABELS["GTS queries"]="GTS queries"
-          CATEGORY_LABELS["NCEI queries"]="NCEI queries"
-          CATEGORY_LABELS["General queries"]="General queries"
-          CATEGORY_LABELS["PI queries"]="PI queries"
-          CATEGORY_LABELS["Core queries"]="Core queries"
-          CATEGORY_LABELS["Deep queries"]="Deep queries"
-          CATEGORY_LABELS["BGC queries"]="BGC queries"
-          CATEGORY_LABELS["Polar queries"]="Polar queries"
-
-          declare -A ORG_LABELS
-          ORG_LABELS["AOML"]="AOML"
-          ORG_LABELS["SIO"]="SIO"
-          ORG_LABELS["UW"]="UW"
-          ORG_LABELS["WHOI"]="WHOI"
-          ORG_LABELS["PMEL"]="PMEL"
-          ORG_LABELS["NAVO"]="NAVO"
-          ORG_LABELS["UH"]="UH"
-          ORG_LABELS["MIT"]="MIT"
-          ORG_LABELS["JPL"]="JPL"
-          ORG_LABELS["NDBC"]="NDBC"
-          ORG_LABELS["FSU"]="FSU"
-          ORG_LABELS["Navoceano"]="Navoceano"
-          ORG_LABELS["UMaine"]="UMaine"
-          ORG_LABELS["iFremer"]="iFremer"
-          ORG_LABELS["Coriolis"]="Coriolis"
-          ORG_LABELS["NCEI"]="NCEI"
-          ORG_LABELS["Other National"]="Other National"
-          ORG_LABELS["Other International"]="Other International"
-
-          # Assign category label
-          CATEGORY_LABEL=${CATEGORY_LABELS[$SELECTED_CATEGORY]}
-          if [[ -z "$CATEGORY_LABEL" ]]; then
-            echo "❌ No matching label found for category: $SELECTED_CATEGORY"
-            exit 0
-          fi
-
-          # Assign organization label
-          ORG_LABEL=${ORG_LABELS[$SELECTED_ORG]}
-          if [[ -z "$ORG_LABEL" ]]; then
-            echo "❌ No matching label found for organization: $SELECTED_ORG"
-            exit 0
-          fi
-
-          echo "🏷️ Assigning labels: $CATEGORY_LABEL, $ORG_LABEL"
-
-          # Add labels to the issue
-          curl -s -X POST -H "Authorization: token $GH_TOKEN" \
-            -H "Accept: application/vnd.github.v3+json" \
-            -d "{
-              \"labels\": [\"$CATEGORY_LABEL\", \"$ORG_LABEL\"]
-            }" \
-            "https://api.github.com/repos/$REPO/issues/$ISSUE_NUMBER"
-
-          echo "✅ Labels \"$CATEGORY_LABEL\" and \"$ORG_LABEL\" successfully added to issue #$ISSUE_NUMBER"
+            if (labels.length > 0) {
+              github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.issue.number,
+                labels: labels
+              });
+              console.log(`Labels added: ${labels.join(", ")}`);
+            } else {
+              console.log("No matching labels found.");
+            }
