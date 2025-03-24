@@ -40,7 +40,7 @@ body:
       label: "🔹 Select Secondary Issue Category (Optional)"
       description: "Choose an additional category if applicable"
       options:
-        - None
+        - No Additional Category  
         - Reprocess request
         - QC queries
         - Phy file queries
