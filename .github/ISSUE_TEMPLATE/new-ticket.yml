@@ -30,6 +30,7 @@ body:
         - label: "Deep queries"
         - label: "BGC queries"
         - label: "Polar queries"
+        - label: "Ticketing System queries"
     validations:
       required: true  # ✅ Ensures at least one category is selected
 
