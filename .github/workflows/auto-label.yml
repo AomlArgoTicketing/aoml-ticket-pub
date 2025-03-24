@@ -16,17 +16,17 @@ jobs:
             const issue = context.payload.issue;
             const body = issue.body;
 
-            function extractField(fieldName) {
-              const regex = new RegExp(${fieldName}\\n\\n(.+));
+            function extractDropdown(fieldName) {
+              const regex = new RegExp(`${fieldName}\\n\\n(.+)`);
               const match = body.match(regex);
               return match ? match[1].trim() : null;
             }
 
-            const category = extractField("🔹 Select Issue Category");
-            const organization = extractField("🏢 Select Organization");
+            const category = extractDropdown("🔹 Select Issue Category");  // ✅ Extract single category from dropdown
+            const organization = extractDropdown("🏢 Select Organization");  // ✅ Extract organization from dropdown
 
-            console.log(Extracted Category: ${category});
-            console.log(Extracted Organization: ${organization});
+            console.log(`Extracted Category: ${category}`);
+            console.log(`Extracted Organization: ${organization}`);
 
             const categoryToLabelMap = {
               "Reprocess request": "Reprocess request",
@@ -43,7 +43,7 @@ jobs:
               "Core queries": "Core queries",
               "Deep queries": "Deep queries",
               "BGC queries": "BGC queries",
-              "Polar queries": "Polar queries"
+              "Polar queries": "Polar queries",
               "Ticketing queries": "Ticketing queries"
             };
 
@@ -71,13 +71,17 @@ jobs:
 
             const labels = [];
 
+            // ✅ Add label based on category selection
             if (categoryToLabelMap[category]) {
               labels.push(categoryToLabelMap[category]);
             }
+
+            // ✅ Add label based on organization selection
             if (organizationToLabelMap[organization]) {
               labels.push(organizationToLabelMap[organization]);
             }
 
+            // ✅ Apply labels if found
             if (labels.length > 0) {
               github.rest.issues.addLabels({
                 owner: context.repo.owner,
@@ -85,7 +89,7 @@ jobs:
                 issue_number: issue.number,
                 labels: labels
               });
-              console.log(Labels added: ${labels.join(", ")});
+              console.log(`Labels added: ${labels.join(", ")}`);
             } else {
               console.log("No matching labels found.");
             }
