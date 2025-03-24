@@ -17,7 +17,7 @@ jobs:
             const body = issue.body;
 
             function extractDropdown(fieldName) {
-              const regex = new RegExp(`${fieldName}.*?\\n\\n(.*?)\\n`, "s");  // Updated regex to ensure it captures the dropdown response
+              const regex = new RegExp(`${fieldName}.*?\\n\\n(.*?)\\n`, "s");  // Updated regex for multiline matching
               const match = body.match(regex);
               return match ? match[1].trim() : null;
             }
@@ -90,8 +90,13 @@ jobs:
 
             // ✅ Apply labels if found
             if (labels.length > 0) {
-              github.rest.issues.addLabels({
+              await github.rest.issues.addLabels({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: issue.number,
                 labels: labels
+              });
+              console.log(`Labels added: ${labels.join(", ")}`);
+            } else {
+              console.log("No matching labels found.");
+            }
