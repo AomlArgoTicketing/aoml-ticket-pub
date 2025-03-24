@@ -44,7 +44,7 @@ jobs:
               "Deep queries": "Deep queries",
               "BGC queries": "BGC queries",
               "Polar queries": "Polar queries"
-              "Ticketing System queries": "Ticketing System queries"
+              "Ticketing queries": "Ticketing queries"
             };
 
             const organizationToLabelMap = {
