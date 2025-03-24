@@ -10,9 +10,9 @@ body:
       value: "### 📝 Please select the type of issue"
 
   - type: dropdown
-    id: category
+    id: category1
     attributes:
-      label: "🔹 Select Issue Category"
+      label: "🔹 Select Primary Issue Category"
       description: "Choose the most relevant category for this issue"
       options:
         - Reprocess request
@@ -33,6 +33,30 @@ body:
         - Ticketing queries
     validations:
       required: true
+
+  - type: dropdown
+    id: category2
+    attributes:
+      label: "🔹 Select Secondary Issue Category (Optional)"
+      description: "Choose an additional category if applicable"
+      options:
+        - None
+        - Reprocess request
+        - QC queries
+        - Phy file queries
+        - Hex file queries
+        - Meta files queries
+        - Traj file queries
+        - GDAC queries
+        - GTS queries
+        - NCEI queries
+        - General queries
+        - PI queries
+        - Core queries
+        - Deep queries
+        - BGC queries
+        - Polar queries
+        - Ticketing queries
 
   - type: dropdown
     id: organization
