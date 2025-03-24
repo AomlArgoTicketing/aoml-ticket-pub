@@ -16,16 +16,27 @@ jobs:
             const issue = context.payload.issue;
             const body = issue.body;
 
-            function extractField(fieldName) {
+            function extractCheckboxList(fieldName) {
+              const regex = new RegExp(`${fieldName}\\n\\n((?:- \\[x\\] .+\\n?)+)`);
+              const match = body.match(regex);
+              if (!match) return [];
+
+              return match[1]
+                .split("\n") // Split into lines
+                .map(line => line.replace(/- \[x\] /, "").trim()) // Remove checkbox markers
+                .filter(Boolean); // Remove empty values
+            }
+
+            function extractDropdown(fieldName) {
               const regex = new RegExp(`${fieldName}\\n\\n(.+)`);
               const match = body.match(regex);
               return match ? match[1].trim() : null;
             }
 
-            const category = extractField("🔹 Select Issue Category");
-            const organization = extractField("🏢 Select Organization");
+            const selectedCategories = extractCheckboxList("🔹 Select Issue Category");  // ✅ Extract multiple categories
+            const organization = extractDropdown("🏢 Select Organization");  // ✅ Extract single organization
 
-            console.log(`Extracted Category: ${category}`);
+            console.log(`Extracted Categories: ${selectedCategories}`);
             console.log(`Extracted Organization: ${organization}`);
 
             const categoryToLabelMap = {
@@ -43,7 +54,7 @@ jobs:
               "Core queries": "Core queries",
               "Deep queries": "Deep queries",
               "BGC queries": "BGC queries",
-              "Polar queries": "Polar queries"
+              "Polar queries": "Polar queries",
               "Ticketing queries": "Ticketing queries"
             };
 
@@ -71,13 +82,19 @@ jobs:
 
             const labels = [];
 
-            if (categoryToLabelMap[category]) {
-              labels.push(categoryToLabelMap[category]);
-            }
+            // ✅ Map each selected category to its label
+            selectedCategories.forEach(category => {
+              if (categoryToLabelMap[category]) {
+                labels.push(categoryToLabelMap[category]);
+              }
+            });
+
+            // ✅ Map organization to its label
             if (organizationToLabelMap[organization]) {
               labels.push(organizationToLabelMap[organization]);
             }
 
+            // ✅ Apply labels if found
             if (labels.length > 0) {
               github.rest.issues.addLabels({
                 owner: context.repo.owner,
