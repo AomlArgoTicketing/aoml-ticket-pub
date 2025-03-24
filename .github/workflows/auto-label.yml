@@ -22,10 +22,12 @@ jobs:
               return match ? match[1].trim() : null;
             }
 
-            const category = extractDropdown("🔹 Select Issue Category");  // ✅ Extract single category from dropdown
-            const organization = extractDropdown("🏢 Select Organization");  // ✅ Extract organization from dropdown
+            const category1 = extractDropdown("🔹 Select Primary Issue Category");  // ✅ Extract primary category
+            const category2 = extractDropdown("🔹 Select Secondary Issue Category (Optional)");  // ✅ Extract secondary category
+            const organization = extractDropdown("🏢 Select Organization");  // ✅ Extract organization
 
-            console.log(`Extracted Category: ${category}`);
+            console.log(`Extracted Primary Category: ${category1}`);
+            console.log(`Extracted Secondary Category: ${category2}`);
             console.log(`Extracted Organization: ${organization}`);
 
             const categoryToLabelMap = {
@@ -71,9 +73,14 @@ jobs:
 
             const labels = [];
 
-            // ✅ Add label based on category selection
-            if (categoryToLabelMap[category]) {
-              labels.push(categoryToLabelMap[category]);
+            // ✅ Add label for primary category
+            if (categoryToLabelMap[category1]) {
+              labels.push(categoryToLabelMap[category1]);
+            }
+
+            // ✅ Add label for secondary category if it's not "No Additional Category"
+            if (category2 !== "No Additional Category" && categoryToLabelMap[category2]) {
+              labels.push(categoryToLabelMap[category2]);
             }
 
             // ✅ Add label based on organization selection
