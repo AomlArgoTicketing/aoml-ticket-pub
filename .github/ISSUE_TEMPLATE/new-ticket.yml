@@ -31,6 +31,7 @@ body:
         - BGC queries
         - Polar queries
         - Ticketing queries
+        - Missing data
     validations:
       required: true
 
@@ -57,6 +58,7 @@ body:
         - BGC queries
         - Polar queries
         - Ticketing queries
+        - Missing data
 
   - type: dropdown
     id: organization
@@ -85,6 +87,24 @@ body:
         - Other International
     validations:
       required: true
+
+  - type: input
+    id: wmo_float_id
+    attributes:
+      label: "🌊 WMO Float ID# (Optional)"
+      description: "Enter the WMO Float ID# if applicable."
+      placeholder: "e.g., 1234567"
+    validations:
+      required: false
+
+  - type: input
+    id: cycle_number
+    attributes:
+      label: "🔄 Cycle # (Optional)"
+      description: "Enter the Cycle # if applicable."
+      placeholder: "e.g., 25"
+    validations:
+      required: false
 
   - type: textarea
     id: description
