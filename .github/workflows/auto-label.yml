@@ -33,21 +33,21 @@ jobs:
             const categoryToLabelMap = {
               "Reprocess request": "Reprocess request",
               "QC queries": "QC queries",
-              "Phy file queries": "Phy file queries",
-              "Hex file queries": "Hex file queries",
-              "Meta files queries": "Meta file queries",
-              "Traj file queries": "Traj file queries",
-              "GDAC queries": "GDAC queries",
-              "GTS queries": "GTS queries",
-              "NCEI queries": "NCEI queries",
-              "General queries": "General queries",
-              "PI queries": "PI queries",
-              "Core queries": "Core queries",
-              "Deep queries": "Deep queries",
-              "BGC queries": "BGC queries",
-              "Polar queries": "Polar queries",
+              "Phy file": "Phy file",
+              "Hex file": "Hex file",
+              "Meta file": "Meta file",
+              "Trajectory file": "Traj file",
+              "GDAC": "GDAC",
+              "GTS": "GTS",
+              "NCEI": "NCEI",
+              "General": "General",
+              "Core": "Core",
+              "Deep": "Deep",
+              "BGC": "BGC",
+              "Polar": "Polar",
               "Ticketing queries": "Ticketing queries",
-              "Missing data": "Missing data"
+              "Missing data/file": "Missing data/file",
+              "Json": "Json"
             };
 
             const organizationToLabelMap = {
