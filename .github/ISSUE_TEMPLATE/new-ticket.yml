@@ -21,17 +21,17 @@ body:
         - GDAC
         - General queries
         - GTS
-        - Hex files
+        - Hex file
         - Json
-        - Meta files
-        - Missing data/files
+        - Meta file
+        - Missing data/file
         - NCEI
-        - Phy files
+        - Phy file
         - Polar
         - QC
         - Reprocess request
         - Ticketing queries
-        - Trajectory files
+        - Trajectory file
     validations:
       required: true
 
@@ -48,17 +48,17 @@ body:
         - GDAC
         - General queries
         - GTS
-        - Hex files
+        - Hex file
         - Json
-        - Meta files
-        - Missing data/files
+        - Meta file
+        - Missing data/file
         - NCEI
-        - Phy files
+        - Phy file
         - Polar
         - QC
         - Reprocess request
         - Ticketing queries
-        - Trajectory files
+        - Trajectory file
 
   - type: dropdown
     id: organization
