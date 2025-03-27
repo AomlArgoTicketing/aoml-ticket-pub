@@ -1,0 +1,49 @@
+name: Sync Comments to Private Repo
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  sync_comment:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Sync comment to private repo
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.PAT_SECRET }}  # Use the same token you're already using
+          script: |
+            const comment = context.payload.comment.body;
+            const commenter = context.payload.comment.user.login;
+            const publicIssueNumber = context.payload.issue.number;
+
+            const privateOwner = "TicketTesting77";  // Replace with your private repo owner
+            const privateRepo = "aoml-internal-tracking";  // Your private repo
+
+            // Search for the private issue with the matching public issue number in its title
+            const { data: privateIssues } = await github.rest.issues.listForRepo({
+              owner: privateOwner,
+              repo: privateRepo,
+              state: "all",
+              per_page: 100
+            });
+
+            const privateIssue = privateIssues.find(issue =>
+              issue.title.startsWith(`[Public #${publicIssueNumber}]`)
+            );
+
+            if (!privateIssue) {
+              console.log(`❌ No matching issue found in private repo for public issue #${publicIssueNumber}`);
+              return;
+            }
+
+            // Post the comment to the private issue
+            await github.rest.issues.createComment({
+              owner: privateOwner,
+              repo: privateRepo,
+              issue_number: privateIssue.number,
+              body: `💬 **Comment from @${commenter} on Public Issue #${publicIssueNumber}:**\n\n${comment}`
+            });
+
+            console.log(`✅ Synced comment from @${commenter} to private issue #${privateIssue.number}`);
