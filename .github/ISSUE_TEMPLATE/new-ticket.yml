@@ -1,4 +1,4 @@
-"📌 New Issue Ticket"
+name: "📌 New Public Issue Ticket"
 description: "Submit a new issue with predefined categories"
 title: "[New Issue] <Add Title Here>"
 labels: ["triage"]
