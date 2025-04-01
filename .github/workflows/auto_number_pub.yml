@@ -1,0 +1,35 @@
+name: Auto Number Public Issues
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  auto_number:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepend [PUBLIC #] to issue title
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.PAT_SECRET }}   # ✅ Use your existing token
+          script: |
+            const issue = context.payload.issue;
+            const number = issue.number;
+            const originalTitle = issue.title;
+
+            // Prevent double numbering if manually added
+            if (originalTitle.startsWith("[PUBLIC #")) {
+              console.log("✅ Issue already numbered. Skipping.");
+              return;
+            }
+
+            const newTitle = `[PUBLIC #${number}] ${originalTitle}`;
+
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: number,
+              title: newTitle
+            });
+
+            console.log(`✅ Issue title updated to: ${newTitle}`);
