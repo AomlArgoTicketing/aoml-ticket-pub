@@ -42,7 +42,7 @@ jobs:
                 per_page: 100
               });
 
-              return existingIssues.some(issue => issue.title.includes(`[Public #${issue_number}]`));
+              return existingIssues.some(issue => issue.title.includes(`[INTERNAL #${issue_number}]`));
             }
 
             const issueNumber = context.payload.issue.number;
@@ -67,11 +67,14 @@ jobs:
               labels.push("Synced from Public");
             }
 
+            // ✅ Replace [PUBLIC #N] with [INTERNAL #N] in title
+            const newTitle = context.payload.issue.title.replace(/\[PUBLIC #(\d+)\]/, `[INTERNAL #$1]`);
+
             // ✅ Create issue in private repo (Only if it doesn't exist)
             const createdIssue = await github.rest.issues.create({
               owner: 'TicketTesting77',
               repo: 'aoml-internal-tracking',
-              title: `[Public #${issueNumber}] ${context.payload.issue.title}`,
+              title: newTitle,
               body: `### 🔗 Linked Public Issue: [View Issue](${context.payload.issue.html_url})\n\n---\n${context.payload.issue.body}`,
               labels: labels
             });
